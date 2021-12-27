@@ -41,12 +41,25 @@ for:
       - scripts/ci/bin/integration_test.sh
 
     after_test:
+      - auto-pipeline-example/gradlew --stop
+      # clean self maven install
       - rm -rf $HOME/.m2/repository/com/foldright/auto-pipeline*
+      # clean maven wrapper zips
       - rm -rf $HOME/.m2/wrapper/dists/*/*/*.zip
+      # clean gradle wrapper zips
       - rm -rf $HOME/.gradle/wrapper/dists/*/*/*.zip
+      # only keep files under ~/.gradle: wrapper, caches/jar-*, caches/modules-*
+      #
+      # The Directories and Files Gradle Uses
+      # https://docs.gradle.org/current/userguide/directory_layout.html
+      - (cd ~/.gradle/ && command ls -d .* * | grep -vE '^(caches|wrapper|\.|\.\.)$' | xargs rm -rf)
+      - (cd ~/.gradle/caches/ && command ls -d .* * | grep -vE '^jars-|^modules-|^\.$|^\.\.$' | xargs rm -rf)
+      # clean sdkman archives
       - rm -rf $HOME/.sdkman/archives/*
 
     cache:
+      # https://www.appveyor.com/docs/build-cache/
+      #
       # if cache size is exceed appveyor limit:
       #   Compressed cache item cannot exceed 1,048,576,000 bytes
       # skip below maven cache:
